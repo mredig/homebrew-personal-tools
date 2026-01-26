@@ -1,8 +1,8 @@
 {
-  "class_name": "AlpineManifestReader",
-  "description": "Parse Alpine Linux package manifest files (APKINDEX format v2)",
-  "homepage": "https://github.com/mredig/AlpineManifestReader",
-  "binary_name": "alpineManifestReader",
-  "project": "AlpineManifestReader",
-  "tarball_prefix": "alpineManifestReader"
+	"class_name": "AlpineManifestReader",
+	"description": "Parse Alpine Linux package manifest files (APKINDEX format v2)",
+	"homepage": "https://github.com/mredig/AlpineManifestReader",
+	"binary_name": "AlpineManifestReader",
+	"project": "AlpineManifestReader",
+	"tarball_prefix": "alpineManifestReader"
 }

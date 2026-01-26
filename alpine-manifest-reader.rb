@@ -15,11 +15,11 @@ class AlpineManifestReader < Formula
   end
 
   def install
-    bin.install "alpineManifestReader"
+    bin.install "AlpineManifestReader"
   end
 
   test do
-    assert_predicate bin/"alpineManifestReader", :exist?
-    assert_predicate bin/"alpineManifestReader", :executable?
+    assert_predicate bin/"AlpineManifestReader", :exist?
+    assert_predicate bin/"AlpineManifestReader", :executable?
   end
 end

@@ -35,10 +35,10 @@ wget -qO- https://dl-cdn.alpinelinux.org/alpine/edge/main/x86_64/APKINDEX.tar.gz
   tar -xzO APKINDEX > APKINDEX
 
 # Query package info
-alpineManifestReader APKINDEX --package sqlite-static
+AlpineManifestReader APKINDEX --package sqlite-static
 
 # Extract version for use in scripts
-VERSION=$(alpineManifestReader APKINDEX --package sqlite-static | jq -r '.packageVersion')
+VERSION=$(AlpineManifestReader APKINDEX --package sqlite-static | jq -r '.packageVersion')
 ```
 
 **Repository:** https://github.com/mredig/AlpineManifestReader
@@ -48,7 +48,7 @@ VERSION=$(alpineManifestReader APKINDEX --package sqlite-static | jq -r '.packag
 After installation, tools are available as executables. Use `--help` for detailed usage:
 
 ```bash
-alpineManifestReader --help
+AlpineManifestReader --help
 ```
 
 Refer to each tool's repository for detailed documentation and examples.
