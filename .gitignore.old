@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Homebrew
+*.bottle.*
+.brew/
+
+# Build artifacts
+*.profraw
+
+# Editor
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.bak
