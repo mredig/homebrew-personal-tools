@@ -43,12 +43,41 @@ VERSION=$(AlpineManifestReader APKINDEX --package sqlite-static | jq -r '.packag
 
 **Repository:** https://github.com/mredig/AlpineManifestReader
 
+### SRT2Text
+
+Swift-based command-line tool for parsing SRT (SubRip) subtitle files and extracting text content.
+
+**Install:**
+```bash
+brew install srt2text
+```
+
+**Features:**
+- Parse SRT subtitle files
+- Extract plain text content (removes timestamps and entry numbers)
+- Output to stdout or file
+- Clean, readable text output
+- Static binary builds with no external dependencies
+- Useful for text analysis, transcription processing, and content extraction
+
+**Example usage:**
+```bash
+# Output to stdout
+SRT2Text subtitles.srt
+
+# Save to file
+SRT2Text subtitles.srt --txt-output-file output.txt
+```
+
+**Repository:** https://github.com/mredig/SRT2Text
+
 ## Usage
 
 After installation, tools are available as executables. Use `--help` for detailed usage:
 
 ```bash
 AlpineManifestReader --help
+SRT2Text --help
 ```
 
 Refer to each tool's repository for detailed documentation and examples.
