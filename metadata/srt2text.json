@@ -1,0 +1,8 @@
+{
+	"class_name": "Srt2text",
+	"description": "Parse SRT subtitle files and extract text content",
+	"homepage": "https://github.com/mredig/SRT2Text",
+	"binary_name": "SRT2Text",
+	"project": "SRT2Text",
+	"tarball_prefix": "srt2text"
+}

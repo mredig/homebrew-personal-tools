@@ -19,6 +19,7 @@ jobs:
       matrix:
         formula:
           - alpine-manifest-reader
+          - srt2text
     
     steps:
       - name: Checkout
