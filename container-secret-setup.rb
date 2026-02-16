@@ -4,9 +4,9 @@ class ContainerSecretSetup < Formula
   license "MIT"
   head "https://github.com/mredig/pizza-utils.git", branch: "main"
 
-  url "https://github.com/mredig/pizza-utils/releases/download/0.0.2/pizza-utils-0.0.2.tar.gz"
-  sha256 "5ecbe0ab3b956719e120a35028bf5a5b819c6d485d596bf191168223d3b4065f"
-  version "0.0.2"
+  url "https://github.com/mredig/pizza-utils/releases/download/0.0.3/pizza-utils-0.0.3.tar.gz"
+  sha256 "7e39ee993d7e1dbb39cee06f8bde35126a6d01823ff00ef5257b38e960d5ed66"
+  version "0.0.3"
 
   def install
     bin.install "container-secret-setup.py" => "container-secret-setup"
