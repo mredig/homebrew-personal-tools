@@ -1,0 +1,147 @@
+name: Update Script Formulas
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-script-formulas
+  cancel-in-progress: false
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        formula:
+          - secret-setup
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read metadata for ${{ matrix.formula }}
+        id: metadata
+        run: |
+          META_FILE="metadata/${{ matrix.formula }}.json"
+
+          if [ ! -f "$META_FILE" ]; then
+            echo "Error: Metadata file not found: $META_FILE"
+            exit 1
+          fi
+
+          echo "Metadata file contents:"
+          cat "$META_FILE"
+          echo ""
+
+          CLASS_NAME=$(jq -r '.class_name' "$META_FILE") || { echo "Failed to parse class_name"; cat "$META_FILE"; exit 1; }
+          DESCRIPTION=$(jq -r '.description' "$META_FILE") || { echo "Failed to parse description"; cat "$META_FILE"; exit 1; }
+          HOMEPAGE=$(jq -r '.homepage' "$META_FILE") || { echo "Failed to parse homepage"; cat "$META_FILE"; exit 1; }
+          BINARY_NAME=$(jq -r '.binary_name' "$META_FILE") || { echo "Failed to parse binary_name"; cat "$META_FILE"; exit 1; }
+          SCRIPT_NAME=$(jq -r '.script_name' "$META_FILE") || { echo "Failed to parse script_name"; cat "$META_FILE"; exit 1; }
+          PROJECT=$(jq -r '.project' "$META_FILE") || { echo "Failed to parse project"; cat "$META_FILE"; exit 1; }
+          TARBALL_PREFIX=$(jq -r '.tarball_prefix' "$META_FILE") || { echo "Failed to parse tarball_prefix"; cat "$META_FILE"; exit 1; }
+
+          echo "class_name=$CLASS_NAME" >> $GITHUB_OUTPUT
+          {
+            echo "description<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          echo "homepage=$HOMEPAGE" >> $GITHUB_OUTPUT
+          echo "binary_name=$BINARY_NAME" >> $GITHUB_OUTPUT
+          echo "script_name=$SCRIPT_NAME" >> $GITHUB_OUTPUT
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "tarball_prefix=$TARBALL_PREFIX" >> $GITHUB_OUTPUT
+
+      - name: Get latest release info for ${{ matrix.formula }}
+        id: release
+        run: |
+          PROJECT="${{ steps.metadata.outputs.project }}"
+          TARBALL_PREFIX="${{ steps.metadata.outputs.tarball_prefix }}"
+
+          echo "Project: $PROJECT"
+          echo "Tarball prefix: $TARBALL_PREFIX"
+
+          # Fetch latest release from GitHub API
+          RELEASE_JSON=$(curl -sL "https://api.github.com/repos/mredig/${PROJECT}/releases/latest")
+
+          if ! echo "$RELEASE_JSON" | jq empty 2>/dev/null; then
+            echo "Error: Invalid JSON response from GitHub API:"
+            echo "$RELEASE_JSON"
+            exit 1
+          fi
+
+          VERSION=$(echo "$RELEASE_JSON" | jq -r '.tag_name')
+
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Error: Failed to fetch valid version from GitHub API"
+            echo "Response was:"
+            echo "$RELEASE_JSON"
+            exit 1
+          fi
+
+          echo "Latest version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Check current version in formula
+          CURRENT_VERSION=$(grep -oP 'releases/download/\K[^/]+' "${{ matrix.formula }}.rb" 2>/dev/null | head -1 || echo "none")
+          echo "Current version: $CURRENT_VERSION"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+          # Download SHA256
+          curl -sL "https://github.com/mredig/${PROJECT}/releases/download/${VERSION}/${TARBALL_PREFIX}-${VERSION}.tar.gz.sha256" -o /tmp/sha256.txt
+          SHA256=$(awk '{print $1}' /tmp/sha256.txt)
+
+          if [ -z "$SHA256" ] || ! echo "$SHA256" | grep -qE '^[a-f0-9]{64}$'; then
+            echo "Error: Invalid or missing SHA256: $SHA256"
+            exit 1
+          fi
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "Downloaded SHA256: $SHA256"
+
+      - name: Check if update needed
+        id: check
+        run: |
+          if [ "${{ steps.release.outputs.version }}" = "${{ steps.release.outputs.current_version }}" ]; then
+            echo "Formula is already up to date"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          else
+            echo "Update needed: ${{ steps.release.outputs.current_version }} -> ${{ steps.release.outputs.version }}"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate formula from template
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          PROJECT="${{ steps.metadata.outputs.project }}"
+          TARBALL_PREFIX="${{ steps.metadata.outputs.tarball_prefix }}"
+          VERSION="${{ steps.release.outputs.version }}"
+          URL="https://github.com/mredig/${PROJECT}/releases/download/${VERSION}/${TARBALL_PREFIX}-${VERSION}.tar.gz"
+
+          sed \
+            -e 's|{{CLASS_NAME}}|${{ steps.metadata.outputs.class_name }}|g' \
+            -e 's|{{DESCRIPTION}}|${{ steps.metadata.outputs.description }}|g' \
+            -e 's|{{HOMEPAGE}}|${{ steps.metadata.outputs.homepage }}|g' \
+            -e 's|{{VERSION}}|'"${VERSION}"'|g' \
+            -e 's|{{URL}}|'"${URL}"'|g' \
+            -e 's|{{SHA256}}|${{ steps.release.outputs.sha256 }}|g' \
+            -e 's|{{SCRIPT_NAME}}|${{ steps.metadata.outputs.script_name }}|g' \
+            -e 's|{{BINARY_NAME}}|${{ steps.metadata.outputs.binary_name }}|g' \
+            .formula-script-template > "${{ matrix.formula }}.rb"
+
+          echo "Generated formula:"
+          cat "${{ matrix.formula }}.rb"
+
+      - name: Commit and push
+        if: steps.check.outputs.needs_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ matrix.formula }}.rb"
+          git commit -m "chore: update ${{ matrix.formula }}.rb to ${{ steps.release.outputs.version }}"
+          git push

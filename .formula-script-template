@@ -1,0 +1,19 @@
+class {{CLASS_NAME}} < Formula
+  desc "{{DESCRIPTION}}"
+  homepage "{{HOMEPAGE}}"
+  license "MIT"
+  head "{{HOMEPAGE}}.git", branch: "main"
+
+  url "{{URL}}"
+  sha256 "{{SHA256}}"
+  version "{{VERSION}}"
+
+  def install
+    bin.install "{{SCRIPT_NAME}}" => "{{BINARY_NAME}}"
+  end
+
+  test do
+    assert_predicate bin/"{{BINARY_NAME}}", :exist?
+    assert_predicate bin/"{{BINARY_NAME}}", :executable?
+  end
+end
