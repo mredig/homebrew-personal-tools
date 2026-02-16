@@ -1,4 +1,4 @@
-class SecretSetup < Formula
+class ContainerSecretSetup < Formula
   desc "Interactive helper to set up and update Docker/Podman secrets"
   homepage "https://github.com/mredig/pizza-utils"
   license "MIT"
@@ -9,11 +9,11 @@ class SecretSetup < Formula
   version "0.0.2"
 
   def install
-    bin.install "secret-setup.py" => "secret-setup"
+    bin.install "container-secret-setup.py" => "container-secret-setup"
   end
 
   test do
-    assert_predicate bin/"secret-setup", :exist?
-    assert_predicate bin/"secret-setup", :executable?
+    assert_predicate bin/"container-secret-setup", :exist?
+    assert_predicate bin/"container-secret-setup", :executable?
   end
 end

@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         formula:
-          - secret-setup
+          - container-secret-setup
 
     steps:
       - name: Checkout
